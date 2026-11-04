@@ -89,6 +89,20 @@ The API will be available at `http://localhost:8080`. You can verify it is runni
 
 Use vite to scaffold out a new frontend application in its own directory here at the project root. Remember to set the correct TypeScript version from the lecture video if you have issues!
 
+### Running the Client
+
+With the API server running on `http://localhost:8080`, start the React app in a second terminal:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Then open `http://localhost:5173`. Other scripts: `npm run build` (type-check and production build) and `npm run lint`.
+
+> The client pins TypeScript to `~5.8`. The current Vite template ships TypeScript 7, which conflicts with `typescript-eslint`'s peer dependency (`<6.1`) and makes `npm install` fail.
+
 ---
 
 ## API Reference
