@@ -15,10 +15,16 @@ export type Comment = {
 export type ArticleInput = Pick<Article, 'title' | 'contents'>;
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+    });
+  } catch {
+    // fetch only rejects when the server can't be reached at all.
+    throw new Error('Can’t reach the server. Check that the API is running, then try again.');
+  }
 
   if (!res.ok) {
     // Some error responses have a JSON { error } body, others (e.g. bare 400) have none.

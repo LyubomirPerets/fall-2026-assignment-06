@@ -15,6 +15,8 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [newBody, setNewBody] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // The comment just added or edited, briefly highlighted so the eye finds it.
+  const [freshId, setFreshId] = useState<number | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -46,6 +48,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     try {
       const created = await createComment(articleId, body);
       setComments((prev) => [...prev, created]);
+      setFreshId(created.commentId);
       setNewBody('');
     } catch (err) {
       setFormError(`Could not add comment: ${(err as Error).message}`);
@@ -56,7 +59,10 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   return (
     <section className="comments" aria-labelledby="comments-heading">
-      <h2 id="comments-heading">Comments{comments.length > 0 && ` (${comments.length})`}</h2>
+      <h2 id="comments-heading" className="comments-heading">
+        Comments
+        {comments.length > 0 && <span className="count"> ({comments.length})</span>}
+      </h2>
 
       {loading ? (
         <StatusMessage kind="loading">Loading comments…</StatusMessage>
@@ -71,11 +77,14 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               key={comment.commentId}
               articleId={articleId}
               comment={comment}
-              onUpdated={(updated) =>
+              fresh={freshId === comment.commentId}
+              onFreshEnd={() => setFreshId(null)}
+              onUpdated={(updated) => {
                 setComments((prev) =>
                   prev.map((c) => (c.commentId === updated.commentId ? updated : c)),
-                )
-              }
+                );
+                setFreshId(updated.commentId);
+              }}
               onDeleted={(commentId) =>
                 setComments((prev) => prev.filter((c) => c.commentId !== commentId))
               }
@@ -84,13 +93,16 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
         </ul>
       )}
 
-      <form className="form comment-form" onSubmit={handleAdd} noValidate>
-        <div className="form-field">
-          <label htmlFor="new-comment">Add a comment</label>
+      <form className="composer" onSubmit={handleAdd} noValidate>
+        <div className="composer-field">
+          <label htmlFor="new-comment" className="visually-hidden">
+            Add a comment
+          </label>
           <textarea
             id="new-comment"
             className="input"
             rows={3}
+            placeholder="Add a comment…"
             value={newBody}
             onChange={(e) => {
               setNewBody(e.target.value);
@@ -105,9 +117,9 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             </p>
           )}
         </div>
-        <div className="form-actions">
+        <div className="composer-actions">
           <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Posting…' : 'Post Comment'}
+            {submitting ? 'Posting…' : 'Post comment'}
           </button>
         </div>
       </form>

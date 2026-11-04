@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import type { ArticleInput } from '../api.ts';
 
 type ArticleFormProps = {
@@ -22,6 +22,15 @@ export default function ArticleForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // The title is a one-line textarea that grows, so long titles wrap like headings.
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [title]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const values = { title: title.trim(), contents: contents.trim() };
@@ -43,15 +52,27 @@ export default function ArticleForm({
   }
 
   return (
-    <form className="form" onSubmit={handleSubmit} noValidate>
-      <div className="form-field">
-        <label htmlFor="article-title">Title</label>
-        <input
+    <form className="editor" onSubmit={handleSubmit} noValidate>
+      <div className="editor-field">
+        <label htmlFor="article-title" className="visually-hidden">
+          Title
+        </label>
+        <textarea
+          ref={titleRef}
           id="article-title"
-          className="input"
+          className="editor-title"
+          placeholder="Untitled"
+          rows={1}
           value={title}
+          onKeyDown={(e) => {
+            // A title is one line: Enter moves on to the body instead of adding a newline.
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              document.getElementById('article-contents')?.focus();
+            }
+          }}
           onChange={(e) => {
-            setTitle(e.target.value);
+            setTitle(e.target.value.replace(/\n/g, ' '));
             setErrors((prev) => ({ ...prev, title: undefined }));
           }}
           aria-invalid={Boolean(errors.title)}
@@ -64,11 +85,14 @@ export default function ArticleForm({
         )}
       </div>
 
-      <div className="form-field">
-        <label htmlFor="article-contents">Contents</label>
+      <div className="editor-field">
+        <label htmlFor="article-contents" className="visually-hidden">
+          Contents
+        </label>
         <textarea
           id="article-contents"
-          className="input"
+          className="editor-body"
+          placeholder="Start writing…"
           rows={12}
           value={contents}
           onChange={(e) => {
@@ -86,16 +110,16 @@ export default function ArticleForm({
       </div>
 
       {submitError && (
-        <p className="error-text" role="alert">
+        <p className="status status--error" role="alert">
           Could not save article: {submitError}
         </p>
       )}
 
-      <div className="form-actions">
+      <div className="editor-actions">
         <button type="submit" className="btn btn-primary" disabled={submitting}>
           {submitting ? 'Saving…' : submitLabel}
         </button>
-        <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={submitting}>
+        <button type="button" className="btn btn-quiet" onClick={onCancel} disabled={submitting}>
           Cancel
         </button>
       </div>

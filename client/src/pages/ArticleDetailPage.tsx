@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteArticle } from '../api.ts';
 import CommentSection from '../components/CommentSection.tsx';
+import PageBar from '../components/PageBar.tsx';
 import StatusMessage from '../components/StatusMessage.tsx';
 import { useArticle } from '../hooks/useArticle.ts';
 
@@ -26,35 +27,38 @@ export default function ArticleDetailPage() {
   }
 
   return (
-    <section>
-      <Link to="/" className="back-link">
-        ← All articles
-      </Link>
+    <>
+      <PageBar
+        crumbs={[{ label: 'All articles', to: '/' }, ...(article ? [{ label: article.title }] : [])]}
+      >
+        {article && (
+          <>
+            <Link to={`/articles/${articleId}/edit`} className="btn btn-quiet">
+              Edit
+            </Link>
+            <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </>
+        )}
+      </PageBar>
 
-      {loading ? (
-        <StatusMessage kind="loading">Loading article…</StatusMessage>
-      ) : error || !article ? (
-        <StatusMessage kind="error">Could not load article: {error}</StatusMessage>
-      ) : (
-        <article>
-          <div className="page-header">
-            <h1>{article.title}</h1>
-            <div className="actions">
-              <Link to={`/articles/${articleId}/edit`} className="btn btn-ghost">
-                Edit
-              </Link>
-              <button type="button" className="btn btn-danger" onClick={handleDelete} disabled={deleting}>
-                {deleting ? 'Deleting…' : 'Delete'}
-              </button>
-            </div>
-          </div>
-          {deleteError && (
-            <StatusMessage kind="error">Could not delete article: {deleteError}</StatusMessage>
-          )}
-          <div className="article-body">{article.contents}</div>
-          <CommentSection articleId={articleId} />
-        </article>
-      )}
-    </section>
+      <div className="doc">
+        {loading ? (
+          <StatusMessage kind="loading">Loading article…</StatusMessage>
+        ) : error || !article ? (
+          <StatusMessage kind="error">Could not load article: {error}</StatusMessage>
+        ) : (
+          <article>
+            <h1 className="doc-title">{article.title}</h1>
+            {deleteError && (
+              <StatusMessage kind="error">Could not delete article: {deleteError}</StatusMessage>
+            )}
+            <div className="article-body">{article.contents}</div>
+            <CommentSection articleId={articleId} />
+          </article>
+        )}
+      </div>
+    </>
   );
 }

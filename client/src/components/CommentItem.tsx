@@ -4,11 +4,20 @@ import { deleteComment, updateComment, type Comment } from '../api.ts';
 type CommentItemProps = {
   articleId: number;
   comment: Comment;
+  fresh: boolean;
+  onFreshEnd: () => void;
   onUpdated: (comment: Comment) => void;
   onDeleted: (commentId: number) => void;
 };
 
-export default function CommentItem({ articleId, comment, onUpdated, onDeleted }: CommentItemProps) {
+export default function CommentItem({
+  articleId,
+  comment,
+  fresh,
+  onFreshEnd,
+  onUpdated,
+  onDeleted,
+}: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +71,7 @@ export default function CommentItem({ articleId, comment, onUpdated, onDeleted }
     const textareaId = `edit-comment-${comment.commentId}`;
     return (
       <li className="comment comment--editing">
-        <form className="form" onSubmit={handleSave} noValidate>
+        <form className="comment-edit" onSubmit={handleSave} noValidate>
           <label htmlFor={textareaId} className="visually-hidden">
             Edit comment
           </label>
@@ -82,11 +91,11 @@ export default function CommentItem({ articleId, comment, onUpdated, onDeleted }
             aria-invalid={Boolean(error)}
           />
           {error && <p className="error-text">{error}</p>}
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary btn-sm" disabled={busy !== null}>
+          <div className="comment-edit-actions">
+            <button type="submit" className="btn btn-primary" disabled={busy !== null}>
               {busy === 'saving' ? 'Saving…' : 'Save'}
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={cancelEditing} disabled={busy !== null}>
+            <button type="button" className="btn btn-quiet" onClick={cancelEditing} disabled={busy !== null}>
               Cancel
             </button>
           </div>
@@ -96,15 +105,15 @@ export default function CommentItem({ articleId, comment, onUpdated, onDeleted }
   }
 
   return (
-    <li className="comment">
+    <li className={fresh ? 'comment comment--fresh' : 'comment'} onAnimationEnd={onFreshEnd}>
       <p className="comment-body">{comment.body}</p>
       {error && (
         <p className="error-text" role="alert">
           {error}
         </p>
       )}
-      <div className="actions">
-        <button type="button" className="btn btn-ghost btn-sm" onClick={startEditing} disabled={busy !== null}>
+      <div className="comment-actions">
+        <button type="button" className="btn btn-quiet btn-sm" onClick={startEditing} disabled={busy !== null}>
           Edit
         </button>
         <button type="button" className="btn btn-danger btn-sm" onClick={handleDelete} disabled={busy !== null}>
