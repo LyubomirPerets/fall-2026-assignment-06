@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { deleteArticle } from '../api.ts';
+import CommentSection from '../components/CommentSection.tsx';
 import StatusMessage from '../components/StatusMessage.tsx';
 import { useArticle } from '../hooks/useArticle.ts';
 
@@ -51,6 +52,7 @@ export default function ArticleDetailPage() {
             <StatusMessage kind="error">Could not delete article: {deleteError}</StatusMessage>
           )}
           <div className="article-body">{article.contents}</div>
+          <CommentSection articleId={articleId} />
         </article>
       )}
     </section>
