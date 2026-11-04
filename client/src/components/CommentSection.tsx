@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createComment, getComments, type Comment } from '../api.ts';
+import CommentItem from './CommentItem.tsx';
 import StatusMessage from './StatusMessage.tsx';
 
 type CommentSectionProps = {
@@ -66,9 +67,19 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       ) : (
         <ul className="comment-list">
           {comments.map((comment) => (
-            <li key={comment.commentId} className="comment">
-              <p className="comment-body">{comment.body}</p>
-            </li>
+            <CommentItem
+              key={comment.commentId}
+              articleId={articleId}
+              comment={comment}
+              onUpdated={(updated) =>
+                setComments((prev) =>
+                  prev.map((c) => (c.commentId === updated.commentId ? updated : c)),
+                )
+              }
+              onDeleted={(commentId) =>
+                setComments((prev) => prev.filter((c) => c.commentId !== commentId))
+              }
+            />
           ))}
         </ul>
       )}
